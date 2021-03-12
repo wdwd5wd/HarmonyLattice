@@ -39,6 +39,14 @@ func (node *Node) processSkippedMsgTypeByteValue(
 		node.ProcessReceiptMessage(content)
 	case proto_node.CrossLink:
 		node.ProcessCrossLinkMessage(content)
+
+	// 我改了，增加对CXContract的处理
+	case proto_node.CallContract:
+		node.OnCalledCXContractDIY(content)
+	case proto_node.CxContract:
+		node.ProcessCXContractMessageDIY(content)
+	case proto_node.CxResult:
+		node.ProcessCXResultMessageDIY(content)
 	default:
 		utils.Logger().Error().
 			Int("message-iota-value", int(cat)).
@@ -87,7 +95,11 @@ func (node *Node) HandleNodeMessage(
 		case
 			proto_node.SlashCandidate,
 			proto_node.Receipt,
-			proto_node.CrossLink:
+			proto_node.CrossLink,
+			// 我改了，增加对cross shard的处理
+			proto_node.CallContract,
+			proto_node.CxContract,
+			proto_node.CxResult:
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])
 		}

@@ -46,6 +46,10 @@ const (
 	CrossLink                       // used for crosslink from beacon chain to shard chain
 	Receipt                         // cross-shard transaction receipts
 	SlashCandidate                  // A report of a double-signing event
+	// 我改了
+	CallContract // call another contract
+	CxContract   // cross-shard contract
+	CxResult     // cross-shard result
 )
 
 var (
@@ -59,6 +63,10 @@ var (
 	syncB      = byte(Sync)
 	crossLinkB = byte(CrossLink)
 	receiptB   = byte(Receipt)
+	// 我改了
+	callcontractB = byte(CallContract)
+	cxcontractB   = byte(CxContract)
+	cxresultB     = byte(CxResult)
 	// H suffix means header
 	slashH           = []byte{nodeB, blockB, slashB}
 	transactionListH = []byte{nodeB, txnB, sendB}
@@ -66,6 +74,10 @@ var (
 	syncH            = []byte{nodeB, blockB, syncB}
 	crossLinkH       = []byte{nodeB, blockB, crossLinkB}
 	cxReceiptH       = []byte{nodeB, blockB, receiptB}
+	// 我改了
+	callcontractH = []byte{nodeB, blockB, callcontractB}
+	cxcontractH   = []byte{nodeB, blockB, cxcontractB}
+	cxresultH     = []byte{nodeB, blockB, cxresultB}
 )
 
 // ConstructTransactionListMessageAccount constructs serialized transactions in account model

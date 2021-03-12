@@ -86,6 +86,9 @@ func (node *Node) BroadcastCXReceiptsWithShardID(block *types.Block, commitSig [
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
 		p2p.ConstructMessage(proto_node.ConstructCXReceiptsProof(cxReceiptsProof)),
 	)
+
+	// 我改了，增加函数发送跨链智能合约
+	node.BroadcastCXContractDIY(block.NumberU64(), myShardID, toShardID, 3, 300*5, 5)
 }
 
 // BroadcastMissingCXReceipts broadcasts missing cross shard receipts per request
