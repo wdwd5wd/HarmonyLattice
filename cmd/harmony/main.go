@@ -251,10 +251,12 @@ func setupNodeAndRun(hc harmonyConfig) {
 		}
 	}
 	if hc.General.NodeType == "validator" {
-		fmt.Printf("%s mode; node key %s -> shard %d\n",
+		fmt.Printf("%s mode; node key %s -> shard %d, horizontal shard %d\n",
 			map[bool]string{false: "Legacy", true: "Staking"}[!hc.General.NoStaking],
 			nodeconfig.GetDefaultConfig().ConsensusPriKey.GetPublicKeys().SerializeToHexStr(),
-			initialAccounts[0].ShardID)
+			initialAccounts[0].ShardID,
+			initialAccounts[0].HorizontalShardID,
+		)
 	}
 	if hc.General.NodeType != "validator" && hc.General.ShardID >= 0 {
 		for _, initialAccount := range initialAccounts {
@@ -527,6 +529,7 @@ func createGlobalConfig(hc harmonyConfig) (*nodeconfig.ConfigType, error) {
 	netType := nodeconfig.NetworkType(hc.Network.NetworkType)
 	nodeconfig.SetNetworkType(netType)                // sets for both global and shard configs
 	nodeConfig.SetShardID(initialAccounts[0].ShardID) // sets shard ID
+	nodeConfig.SetHorizontalShardID(initialAccounts[0].HorizontalShardID) // sets horizontal shard ID
 	nodeConfig.SetArchival(hc.General.IsBeaconArchival, hc.General.IsArchival)
 	nodeConfig.IsOffline = hc.General.IsOffline
 
@@ -656,6 +659,7 @@ func setupConsensusAndNode(hc harmonyConfig, nodeConfig *nodeconfig.ConfigType) 
 	}
 	currentNode.NodeConfig.SetShardGroupID(nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(nodeConfig.ShardID)))
 	currentNode.NodeConfig.SetClientGroupID(nodeconfig.NewClientGroupIDByShardID(shard.BeaconChainShardID))
+	currentNode.NodeConfig.SetHorizontalGroupID(nodeconfig.NewGroupIDByHorizontalShardID(nodeconfig.ShardID(nodeConfig.HorizontalShardID)))
 	currentNode.NodeConfig.ConsensusPriKey = nodeConfig.ConsensusPriKey
 
 	// This needs to be executed after consensus setup

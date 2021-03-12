@@ -5,6 +5,7 @@ import (
 	"context"
 	"math/rand"
 	"time"
+	"unsafe"
 
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/harmony-one/harmony/api/proto"
@@ -103,6 +104,9 @@ func (node *Node) HandleNodeMessage(
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])
 		}
+	// horizontal related message
+	case 5:
+		//do nothing is ok when just broadcast horizontally
 	default:
 		utils.Logger().Error().
 			Str("Unknown actionType", string(actionType))
@@ -256,6 +260,18 @@ func (node *Node) BroadcastCrossLink() {
 	)
 }
 
+// str2bytes can convey string to byte[]
+func str2bytes(s string) []byte {
+	x := (*[2]uintptr)(unsafe.Pointer(&s))
+	  h := [3]uintptr{x[0], x[1], x[1]}
+	 return *(*[]byte)(unsafe.Pointer(&h))
+ }
+
+// bytes2str can convey byte[] to string
+func bytes2str(b []byte) string {
+	 return *(*string)(unsafe.Pointer(&b))
+}
+
 // VerifyNewBlock is called by consensus participants to verify the block (account model) they are
 // running consensus on
 func (node *Node) VerifyNewBlock(newBlock *types.Block) error {
@@ -342,6 +358,29 @@ func (node *Node) VerifyNewBlock(newBlock *types.Block) error {
 	return nil
 }
 
+
+// PostHorizontalMessage is called by any node in horizontal shard
+// TODO: parameter may be better designed later 
+func (node *Node) PostHorizontalMessage(str string) error {
+	groups := []nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()}
+	utils.Logger().Info().
+		Msgf(
+			"broadcasting content %s to horizontal group %s", str, groups[0],
+		)
+	content := str2bytes(str)
+	category := []byte{5}
+	var buffer bytes.Buffer
+	buffer.Write(category)
+	buffer.Write(content)
+	sendMsg := buffer.Bytes()
+	if err := node.host.SendMessageToGroups(groups, p2p.ConstructMessage(sendMsg)); err != nil {
+		utils.Logger().Warn().Err(err).Msg("cannot broadcast to Horizon")
+		
+	}
+	return nil
+}
+
+
 // PostConsensusProcessing is called by consensus participants, after consensus is done, to:
 // 1. add the new block to blockchain
 // 2. [leader] send new block to the client
@@ -352,6 +391,15 @@ func (node *Node) PostConsensusProcessing(newBlock *types.Block) error {
 			node.BroadcastNewBlock(newBlock)
 		}
 		node.BroadcastCXReceipts(newBlock)
+		// test: let beacon leader send message to his horizontal shard
+		if node.host.GetID().String() == "QmWNYqjG8DRS5pzDuvpt7js6qNtGAprrP8uya6bRc227eL" {
+			utils.Logger().Info().
+				Msgf(
+					"broadcasting new block again %d, group %s", newBlock.NumberU64(),
+					[]nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()} ,
+				)
+			node.PostHorizontalMessage("hei hei hei i am the boss")
+		}
 	} else {
 		if node.Consensus.Mode() != consensus.Listening {
 			utils.Logger().Info().

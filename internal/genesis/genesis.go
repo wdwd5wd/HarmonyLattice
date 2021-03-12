@@ -14,10 +14,11 @@ const genesisString = "https://harmony.one 'Open Consensus for 10B' 2019.06.01 $
 
 // DeployAccount is the account used in genesis
 type DeployAccount struct {
-	Index        string // index
-	Address      string // account address
-	BLSPublicKey string // account public BLS key
-	ShardID      uint32 // shardID of the account
+	Index        		string // index
+	Address      		string // account address
+	BLSPublicKey 		string // account public BLS key
+	ShardID      		uint32 // shardID of the account
+	HorizontalShardID 	uint32 // horizontal shardID of the account
 }
 
 func (d DeployAccount) String() string {
