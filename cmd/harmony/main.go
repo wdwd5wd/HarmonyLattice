@@ -250,6 +250,8 @@ func setupNodeAndRun(hc harmonyConfig) {
 			os.Exit(1)
 		}
 	}
+	// modified by linyou
+	// add log about horizontal
 	if hc.General.NodeType == "validator" {
 		fmt.Printf("%s mode; node key %s -> shard %d, horizontal shard %d\n",
 			map[bool]string{false: "Legacy", true: "Staking"}[!hc.General.NoStaking],
@@ -529,6 +531,7 @@ func createGlobalConfig(hc harmonyConfig) (*nodeconfig.ConfigType, error) {
 	netType := nodeconfig.NetworkType(hc.Network.NetworkType)
 	nodeconfig.SetNetworkType(netType)                // sets for both global and shard configs
 	nodeConfig.SetShardID(initialAccounts[0].ShardID) // sets shard ID
+	//modified by linyou
 	nodeConfig.SetHorizontalShardID(initialAccounts[0].HorizontalShardID) // sets horizontal shard ID
 	nodeConfig.SetArchival(hc.General.IsBeaconArchival, hc.General.IsArchival)
 	nodeConfig.IsOffline = hc.General.IsOffline
@@ -659,6 +662,7 @@ func setupConsensusAndNode(hc harmonyConfig, nodeConfig *nodeconfig.ConfigType) 
 	}
 	currentNode.NodeConfig.SetShardGroupID(nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(nodeConfig.ShardID)))
 	currentNode.NodeConfig.SetClientGroupID(nodeconfig.NewClientGroupIDByShardID(shard.BeaconChainShardID))
+	// modified by linyou
 	currentNode.NodeConfig.SetHorizontalGroupID(nodeconfig.NewGroupIDByHorizontalShardID(nodeconfig.ShardID(nodeConfig.HorizontalShardID)))
 	currentNode.NodeConfig.ConsensusPriKey = nodeConfig.ConsensusPriKey
 

@@ -92,6 +92,7 @@ func (node *Node) HandleNodeMessage(
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])
 		}
+	// modified by linyou
 	// horizontal related message
 	case 5:
 		//do nothing is ok when just broadcast horizontally
@@ -248,6 +249,7 @@ func (node *Node) BroadcastCrossLink() {
 	)
 }
 
+// modified by linyou
 // str2bytes can convey string to byte[]
 func str2bytes(s string) []byte {
 	x := (*[2]uintptr)(unsafe.Pointer(&s))
@@ -346,7 +348,7 @@ func (node *Node) VerifyNewBlock(newBlock *types.Block) error {
 	return nil
 }
 
-
+// modified by linyou
 // PostHorizontalMessage is called by any node in horizontal shard
 // TODO: parameter may be better designed later 
 func (node *Node) PostHorizontalMessage(str string) error {
@@ -379,6 +381,7 @@ func (node *Node) PostConsensusProcessing(newBlock *types.Block) error {
 			node.BroadcastNewBlock(newBlock)
 		}
 		node.BroadcastCXReceipts(newBlock)
+		// modified by linyou
 		// test: let beacon leader send message to his horizontal shard
 		if node.host.GetID().String() == "QmWNYqjG8DRS5pzDuvpt7js6qNtGAprrP8uya6bRc227eL" {
 			utils.Logger().Info().

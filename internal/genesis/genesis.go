@@ -18,6 +18,7 @@ type DeployAccount struct {
 	Address      		string // account address
 	BLSPublicKey 		string // account public BLS key
 	ShardID      		uint32 // shardID of the account
+	// modified by linyou
 	HorizontalShardID 	uint32 // horizontal shardID of the account
 }
 

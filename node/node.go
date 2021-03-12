@@ -421,6 +421,7 @@ func (node *Node) validateNodeMessage(ctx context.Context, payload []byte) (
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "invalid_block_type"}).Inc()
 			return nil, 0, errInvalidNodeMsg
 		}
+	// modified by linyou
 	// msgtype for horizontal message is 5 (hard-coded here)
 	case 5:
 			//does nothing here maybe OK?
@@ -572,6 +573,7 @@ func (node *Node) StartPubSub() error {
 	for _, t := range []t{
 		{node.NodeConfig.GetShardGroupID(), true},
 		{node.NodeConfig.GetClientGroupID(), false},
+		// modified by linyou
 		{node.NodeConfig.GetHorizontalGroupID(), false},
 	} {
 		if _, ok := groups[t.tp]; !ok {
@@ -658,6 +660,7 @@ func (node *Node) StartPubSub() error {
 				nodeP2PMessageCounterVec.With(prometheus.Labels{"type": "total"}).Inc()
 				hmyMsg := msg.GetData()
 
+				// modified by linyou
 				// keep the log of receiving horizontal message
 				if find := strings.Contains(topicNamed, "lyn_test_horizontal"); find {
 					utils.Logger().Info().
@@ -667,7 +670,7 @@ func (node *Node) StartPubSub() error {
 						Str("string content",  bytes2str(hmyMsg)).
 						Msg("gugugu")
 				}
-	
+
 
 				// first to validate the size of the p2p message
 				if len(hmyMsg) < p2pMsgPrefixSize {
@@ -743,6 +746,7 @@ func (node *Node) StartPubSub() error {
 						actionType:     actionType,
 					}
 					return libp2p_pubsub.ValidationAccept
+				// modified by linyou
 				// this case is horizontal message type, which is not set in the common.go(hard-coded here)
 				case 5:
 					nodeP2PMessageCounterVec.With(prometheus.Labels{"type": "horizontal msg"}).Inc()
