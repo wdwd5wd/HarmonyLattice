@@ -398,6 +398,7 @@ func (node *Node) validateNodeMessage(ctx context.Context, payload []byte) (
 		case proto_node.Sync:
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "block_sync"}).Inc()
 			// only non-beacon nodes process the beacon block sync messages
+			// holy!! 
 			if node.Blockchain().ShardID() == shard.BeaconChainShardID {
 				return nil, 0, errIgnoreBeaconMsg
 			}
@@ -420,11 +421,15 @@ func (node *Node) validateNodeMessage(ctx context.Context, payload []byte) (
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "invalid_block_type"}).Inc()
 			return nil, 0, errInvalidNodeMsg
 		}
+	// msgtype for horizontal message is 5 (hard-coded here)
+	case 5:
+			//does nothing here maybe OK?
+			//or we can add some valification behavior here
 	default:
 		nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "invalid_node_type"}).Inc()
 		return nil, 0, errInvalidNodeMsg
 	}
-
+	// p2pNodeMsgPrefixSize is 2
 	return payload[p2pNodeMsgPrefixSize:], msgType, nil
 }
 
@@ -563,9 +568,11 @@ func (node *Node) StartPubSub() error {
 	groups := map[nodeconfig.GroupID]bool{}
 
 	// three topic subscribed by each validator
+	// add one horizontal topic
 	for _, t := range []t{
 		{node.NodeConfig.GetShardGroupID(), true},
 		{node.NodeConfig.GetClientGroupID(), false},
+		{node.NodeConfig.GetHorizontalGroupID(), false},
 	} {
 		if _, ok := groups[t.tp]; !ok {
 			groups[t.tp] = t.isCon
@@ -651,6 +658,17 @@ func (node *Node) StartPubSub() error {
 				nodeP2PMessageCounterVec.With(prometheus.Labels{"type": "total"}).Inc()
 				hmyMsg := msg.GetData()
 
+				// keep the log of receiving horizontal message
+				if find := strings.Contains(topicNamed, "lyn_test_horizontal"); find {
+					utils.Logger().Info().
+						Str("topic", topicNamed).
+						Msg("validation function called to quickly validate every p2p message")
+					utils.Logger().Info().
+						Str("string content",  bytes2str(hmyMsg)).
+						Msg("gugugu")
+				}
+	
+
 				// first to validate the size of the p2p message
 				if len(hmyMsg) < p2pMsgPrefixSize {
 					// TODO (lc): block peers sending empty messages
@@ -725,8 +743,21 @@ func (node *Node) StartPubSub() error {
 						actionType:     actionType,
 					}
 					return libp2p_pubsub.ValidationAccept
+				// this case is horizontal message type, which is not set in the common.go(hard-coded here)
+				case 5:
+					nodeP2PMessageCounterVec.With(prometheus.Labels{"type": "horizontal msg"}).Inc()
+					//msg.ValidatorData = validated{
+					//	consensusBound: false,
+					//	handleE:        node.HandleNodeMessage,
+					//	handleEArg:     openBox[2:],
+					//	actionType:     proto_node.MessageType(openBox[1]),
+					//}
+					return libp2p_pubsub.ValidationAccept
 				default:
 					// ignore garbled messages
+					// when test horizon, it seems that never enter here
+					utils.Logger().Warn().
+						Str("topic", topicNamed).Msg(" ignore garbled messages")
 					nodeP2PMessageCounterVec.With(prometheus.Labels{"type": "ignored"}).Inc()
 					return libp2p_pubsub.ValidationReject
 				}
@@ -754,6 +785,9 @@ func (node *Node) StartPubSub() error {
 			// This is suitable for simple or cpu-bound validators that do not block.
 			libp2p_pubsub.WithValidatorInline(true),
 		); err != nil {
+			utils.Logger().Info().
+				Str("topic", topicNamed).
+				Msg(" ERROR")
 			return err
 		}
 
