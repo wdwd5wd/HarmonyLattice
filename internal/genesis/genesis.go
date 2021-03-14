@@ -20,6 +20,7 @@ type DeployAccount struct {
 	ShardID      		uint32 // shardID of the account
 	// modified by linyou
 	HorizontalShardID 	uint32 // horizontal shardID of the account
+	// SubgroupID			uint32 // subgroup shardID of the account
 }
 
 func (d DeployAccount) String() string {

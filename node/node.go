@@ -575,6 +575,7 @@ func (node *Node) StartPubSub() error {
 		{node.NodeConfig.GetClientGroupID(), false},
 		// modified by linyou
 		{node.NodeConfig.GetHorizontalGroupID(), false},
+		{node.NodeConfig.GetSubgroupID(), false},
 	} {
 		if _, ok := groups[t.tp]; !ok {
 			groups[t.tp] = t.isCon
@@ -668,7 +669,14 @@ func (node *Node) StartPubSub() error {
 						Msg("validation function called to quickly validate every p2p message")
 					utils.Logger().Info().
 						Str("string content",  bytes2str(hmyMsg)).
-						Msg("gugugu")
+						Msg("gugugu, get from horizontal shard")
+				}else if find := strings.Contains(topicNamed, "lyn_test_subgroup"); find {
+					utils.Logger().Info().
+						Str("topic", topicNamed).
+						Msg("validation function called to quickly validate every p2p message")
+					utils.Logger().Info().
+						Str("string content",  bytes2str(hmyMsg)).
+						Msg("heiheihei, get from subgroup")
 				}
 
 

@@ -664,6 +664,7 @@ func setupConsensusAndNode(hc harmonyConfig, nodeConfig *nodeconfig.ConfigType) 
 	currentNode.NodeConfig.SetClientGroupID(nodeconfig.NewClientGroupIDByShardID(shard.BeaconChainShardID))
 	// modified by linyou
 	currentNode.NodeConfig.SetHorizontalGroupID(nodeconfig.NewGroupIDByHorizontalShardID(nodeconfig.ShardID(nodeConfig.HorizontalShardID)))
+	currentNode.NodeConfig.SetSubgroupID(nodeconfig.NewSubgroupIDByShardInfo(nodeconfig.ShardID(nodeConfig.ShardID), nodeconfig.ShardID(nodeConfig.HorizontalShardID)))
 	currentNode.NodeConfig.ConsensusPriKey = nodeConfig.ConsensusPriKey
 
 	// This needs to be executed after consensus setup

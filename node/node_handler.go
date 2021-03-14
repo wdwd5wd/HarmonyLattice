@@ -349,13 +349,12 @@ func (node *Node) VerifyNewBlock(newBlock *types.Block) error {
 }
 
 // modified by linyou
-// PostHorizontalMessage is called by any node in horizontal shard
+// PostAdditionMessage is called by any node in horizontal shard or in subgroup
 // TODO: parameter may be better designed later 
-func (node *Node) PostHorizontalMessage(str string) error {
-	groups := []nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()}
+func (node *Node) PostAdditionMessage(str string, groups []nodeconfig.GroupID) error {
 	utils.Logger().Info().
 		Msgf(
-			"broadcasting content %s to horizontal group %s", str, groups[0],
+			"broadcasting content %s to group %s", str, groups[0],
 		)
 	content := str2bytes(str)
 	category := []byte{5}
@@ -384,12 +383,22 @@ func (node *Node) PostConsensusProcessing(newBlock *types.Block) error {
 		// modified by linyou
 		// test: let beacon leader send message to his horizontal shard
 		if node.host.GetID().String() == "QmWNYqjG8DRS5pzDuvpt7js6qNtGAprrP8uya6bRc227eL" {
+			// to horizontal shard
+			var horizontalGroups = []nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()}
 			utils.Logger().Info().
 				Msgf(
-					"broadcasting new block again %d, group %s", newBlock.NumberU64(),
-					[]nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()} ,
+					"try to send message to horizontal shard %s",
+					horizontalGroups,
 				)
-			node.PostHorizontalMessage("hei hei hei i am the boss")
+			node.PostAdditionMessage("hei hei hei i am in horizontal shard", horizontalGroups)
+			// to subgroup
+			var subgroups = []nodeconfig.GroupID{node.NodeConfig.GetSubgroupID()}
+			utils.Logger().Info().
+				Msgf(
+					"try to send message to horizontal subgroup %s",
+					subgroups,
+				)
+			node.PostAdditionMessage("hei hei hei i am in subgroup", subgroups)
 		}
 	} else {
 		if node.Consensus.Mode() != consensus.Listening {

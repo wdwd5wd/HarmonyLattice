@@ -73,6 +73,7 @@ type ConfigType struct {
 	group           	GroupID             // the group ID of the shard (note: for beacon chain node, the beacon and shard group are the same)
 	// modified by linyou
 	horizontalGroup 	GroupID             // the horizontal group id
+	subgroup 			GroupID             // the subgroup id of node
 	client          	GroupID             // the client group ID of the shard
 	isClient        	bool                // whether this node is a client node, such as wallet
 	ShardID         	uint32              // ShardID of this node; TODO ek – revisit when resharding
@@ -174,6 +175,13 @@ func (conf *ConfigType) SetHorizontalGroupID(g GroupID) {
 	conf.horizontalGroup= g
 }
 
+// modified by linyou
+// SetSubgroupID set the subgroupID for a node
+func (conf *ConfigType) SetSubgroupID(g GroupID) {
+	conf.subgroup= g
+}
+
+
 // SetClientGroupID set the groupID for client group
 func (conf *ConfigType) SetClientGroupID(g GroupID) {
 	conf.client = g
@@ -220,6 +228,12 @@ func (conf *ConfigType) GetShardID() uint32 {
 // GetShardID returns the horizontal shardID.
 func (conf *ConfigType) GetHorizontalShardID() uint32 {
 	return conf.HorizontalShardID
+}
+
+// modified by linyou
+// SetSubgroupID returns the subgroup shardID.
+func (conf *ConfigType) GetSubgroupID() GroupID{
+	return conf.subgroup
 }
 
 // GetClientGroupID returns the groupID for client group
