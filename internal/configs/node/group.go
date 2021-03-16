@@ -25,10 +25,11 @@ const (
 	GroupIDBeaconClient      GroupID = "%s/0.0.1/client/beacon"
 	GroupIDShardPrefix       GroupID = "%s/0.0.1/node/shard/%s"
 	GroupIDShardClientPrefix GroupID = "%s/0.0.1/client/shard/%s"
-	GroupIDShardHorizontal   GroupID = "%s/0.0.1/Horizontal/shard/%s"
-	GroupIDGlobal            GroupID = "%s/0.0.1/node/global"
-	GroupIDGlobalClient      GroupID = "%s/0.0.1/node/global"
-	GroupIDUnknown           GroupID = "%s/B1acKh0lE"
+	// 林游改了
+	GroupIDShardHorizontal GroupID = "%s/0.0.1/Horizontal/shard/%s"
+	GroupIDGlobal          GroupID = "%s/0.0.1/node/global"
+	GroupIDGlobalClient    GroupID = "%s/0.0.1/node/global"
+	GroupIDUnknown         GroupID = "%s/B1acKh0lE"
 )
 
 // ShardID defines the ID of a shard
@@ -64,6 +65,7 @@ func NewGroupIDByShardID(shardID ShardID) GroupID {
 	return GroupID(fmt.Sprintf(GroupIDShardPrefix.String(), getNetworkPrefix(shardID), strconv.Itoa(int(shardID))))
 }
 
+// 林游改了
 // NewGroupHorizontal returns a new groupID for a horizontal shard
 func NewGroupIDByHorizontalShardID(shardID ShardID) GroupID {
 	return GroupID(fmt.Sprintf(GroupIDShardHorizontal.String(), "lyn_test_horizontal", strconv.Itoa(int(shardID))))

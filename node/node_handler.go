@@ -42,12 +42,12 @@ func (node *Node) processSkippedMsgTypeByteValue(
 		node.ProcessCrossLinkMessage(content)
 
 	// 我改了，增加对CXContract的处理
-	case proto_node.CallContract:
-		node.OnCalledCXContractDIY(content)
 	case proto_node.CxContract:
-		node.ProcessCXContractMessageDIY(content)
+		node.ProcessCXContractMessageDIYLattice(content)
+	case proto_node.CallContract:
+		node.OnCalledCXContractDIYLattice(content)
 	case proto_node.CxResult:
-		node.ProcessCXResultMessageDIY(content)
+		node.ProcessCXResultMessageDIYLattice(content)
 	default:
 		utils.Logger().Error().
 			Int("message-iota-value", int(cat)).
@@ -98,15 +98,18 @@ func (node *Node) HandleNodeMessage(
 			proto_node.Receipt,
 			proto_node.CrossLink,
 			// 我改了，增加对cross shard的处理
-			proto_node.CallContract,
 			proto_node.CxContract,
+			proto_node.CallContract,
 			proto_node.CxResult:
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])
 		}
+
+	// 林游改了
 	// horizontal related message
 	case 5:
 		//do nothing is ok when just broadcast horizontally
+
 	default:
 		utils.Logger().Error().
 			Str("Unknown actionType", string(actionType))
@@ -260,16 +263,18 @@ func (node *Node) BroadcastCrossLink() {
 	)
 }
 
+// 林游改了
 // str2bytes can convey string to byte[]
 func str2bytes(s string) []byte {
 	x := (*[2]uintptr)(unsafe.Pointer(&s))
-	  h := [3]uintptr{x[0], x[1], x[1]}
-	 return *(*[]byte)(unsafe.Pointer(&h))
- }
+	h := [3]uintptr{x[0], x[1], x[1]}
+	return *(*[]byte)(unsafe.Pointer(&h))
+}
 
+// 林游改了
 // bytes2str can convey byte[] to string
 func bytes2str(b []byte) string {
-	 return *(*string)(unsafe.Pointer(&b))
+	return *(*string)(unsafe.Pointer(&b))
 }
 
 // VerifyNewBlock is called by consensus participants to verify the block (account model) they are
@@ -358,9 +363,9 @@ func (node *Node) VerifyNewBlock(newBlock *types.Block) error {
 	return nil
 }
 
-
+// 林游改了
 // PostHorizontalMessage is called by any node in horizontal shard
-// TODO: parameter may be better designed later 
+// TODO: parameter may be better designed later
 func (node *Node) PostHorizontalMessage(str string) error {
 	groups := []nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()}
 	utils.Logger().Info().
@@ -375,11 +380,10 @@ func (node *Node) PostHorizontalMessage(str string) error {
 	sendMsg := buffer.Bytes()
 	if err := node.host.SendMessageToGroups(groups, p2p.ConstructMessage(sendMsg)); err != nil {
 		utils.Logger().Warn().Err(err).Msg("cannot broadcast to Horizon")
-		
+
 	}
 	return nil
 }
-
 
 // PostConsensusProcessing is called by consensus participants, after consensus is done, to:
 // 1. add the new block to blockchain
@@ -391,15 +395,17 @@ func (node *Node) PostConsensusProcessing(newBlock *types.Block) error {
 			node.BroadcastNewBlock(newBlock)
 		}
 		node.BroadcastCXReceipts(newBlock)
+		// 林游改了
 		// test: let beacon leader send message to his horizontal shard
 		if node.host.GetID().String() == "QmWNYqjG8DRS5pzDuvpt7js6qNtGAprrP8uya6bRc227eL" {
 			utils.Logger().Info().
 				Msgf(
 					"broadcasting new block again %d, group %s", newBlock.NumberU64(),
-					[]nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()} ,
+					[]nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()},
 				)
 			node.PostHorizontalMessage("hei hei hei i am the boss")
 		}
+
 	} else {
 		if node.Consensus.Mode() != consensus.Listening {
 			utils.Logger().Info().

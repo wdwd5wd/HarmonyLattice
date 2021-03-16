@@ -66,33 +66,34 @@ const (
 var version string
 var peerID peer.ID // PeerID of the node
 
+// 林游改了
 // ConfigType is the structure of all node related configuration variables
 type ConfigType struct {
 	// The three groupID design, please refer to https://github.com/harmony-one/harmony/blob/master/node/node.md#libp2p-integration
-	beacon          	GroupID             // the beacon group ID
-	group           	GroupID             // the group ID of the shard (note: for beacon chain node, the beacon and shard group are the same)
-	horizontalGroup 	GroupID             // the horizontal group id
-	client          	GroupID             // the client group ID of the shard
-	isClient        	bool                // whether this node is a client node, such as wallet
-	ShardID         	uint32              // ShardID of this node; TODO ek – revisit when resharding
-	HorizontalShardID	uint32				// the group ID of the horizontal shard
-	role            	Role                // Role of the node
-	Port            	string              // Port of the node.
-	IP              	string              // IP of the node.
-	RPCServer       	RPCServerConfig     // RPC server port and ip
-	RosettaServer   	RosettaServerConfig // rosetta server port and ip
-	IsOffline       	bool
-	NtpServer       	string
-	StringRole      	string
-	P2PPriKey       	p2p_crypto.PrivKey
-	ConsensusPriKey 	multibls.PrivateKeys
+	beacon            GroupID             // the beacon group ID
+	group             GroupID             // the group ID of the shard (note: for beacon chain node, the beacon and shard group are the same)
+	horizontalGroup   GroupID             // the horizontal group id
+	client            GroupID             // the client group ID of the shard
+	isClient          bool                // whether this node is a client node, such as wallet
+	ShardID           uint32              // ShardID of this node; TODO ek – revisit when resharding
+	HorizontalShardID uint32              // the group ID of the horizontal shard
+	role              Role                // Role of the node
+	Port              string              // Port of the node.
+	IP                string              // IP of the node.
+	RPCServer         RPCServerConfig     // RPC server port and ip
+	RosettaServer     RosettaServerConfig // rosetta server port and ip
+	IsOffline         bool
+	NtpServer         string
+	StringRole        string
+	P2PPriKey         p2p_crypto.PrivKey
+	ConsensusPriKey   multibls.PrivateKeys
 	// Database directory
-	DBDir            	string
-	networkType      	NetworkType
-	shardingSchedule 	shardingconfig.Schedule
-	DNSZone          	string
-	isArchival       	map[uint32]bool
-	WebHooks         	struct {
+	DBDir            string
+	networkType      NetworkType
+	shardingSchedule shardingconfig.Schedule
+	DNSZone          string
+	isArchival       map[uint32]bool
+	WebHooks         struct {
 		Hooks *webhooks.Hooks
 	}
 }
@@ -166,9 +167,10 @@ func (conf *ConfigType) SetShardGroupID(g GroupID) {
 	conf.group = g
 }
 
+// 林游改了
 // SetHorizontalGroupID set the groupID for horizontal shard group
 func (conf *ConfigType) SetHorizontalGroupID(g GroupID) {
-	conf.horizontalGroup= g
+	conf.horizontalGroup = g
 }
 
 // SetClientGroupID set the groupID for client group
@@ -181,6 +183,7 @@ func (conf *ConfigType) SetShardID(s uint32) {
 	conf.ShardID = s
 }
 
+// 林游改了
 // SetHorizontalShardID set the Horizontal ShardID
 func (conf *ConfigType) SetHorizontalShardID(s uint32) {
 	conf.HorizontalShardID = s
@@ -201,6 +204,7 @@ func (conf *ConfigType) GetShardGroupID() GroupID {
 	return conf.group
 }
 
+// 林游改了
 // GetHorizontalGroupID returns the groupID for horizontal shard group
 func (conf *ConfigType) GetHorizontalGroupID() GroupID {
 	return conf.horizontalGroup
@@ -211,6 +215,7 @@ func (conf *ConfigType) GetShardID() uint32 {
 	return conf.ShardID
 }
 
+// 林游改了
 // GetShardID returns the horizontal shardID.
 func (conf *ConfigType) GetHorizontalShardID() uint32 {
 	return conf.HorizontalShardID

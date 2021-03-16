@@ -52,15 +52,16 @@ type p2pConfig struct {
 	DHTDataStore *string `toml:",omitempty"`
 }
 
+// 林游改了
 type generalConfig struct {
-	NodeType         	string
-	NoStaking        	bool
-	ShardID          	int
-	HorizontalShardID 	int
-	IsArchival       	bool
-	IsBeaconArchival 	bool
-	IsOffline        	bool
-	DataDir          	string
+	NodeType          string
+	NoStaking         bool
+	ShardID           int
+	HorizontalShardID int
+	IsArchival        bool
+	IsBeaconArchival  bool
+	IsOffline         bool
+	DataDir           string
 }
 
 type consensusConfig struct {
