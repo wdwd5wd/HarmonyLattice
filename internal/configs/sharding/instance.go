@@ -153,7 +153,7 @@ func (sc instance) FindAccount(blsPubKey string) (bool, *genesis.DeployAccount) 
 	for i, item := range sc.hmyAccounts {
 		if item.BLSPublicKey == blsPubKey {
 			item.ShardID = uint32(i) % sc.numShards
-			// 林游改了
+			// modified by linyou
 			// make sure that nodes in common(vertical) shard will
 			// be seperated into different horizontal shards
 			item.HorizontalShardID = (uint32(i) / sc.numShards) % sc.numShards
@@ -163,7 +163,7 @@ func (sc instance) FindAccount(blsPubKey string) (bool, *genesis.DeployAccount) 
 	for i, item := range sc.fnAccounts {
 		if item.BLSPublicKey == blsPubKey {
 			item.ShardID = uint32(i) % sc.numShards
-			// 林游改了
+			// modified by linyou
 			item.HorizontalShardID = (uint32(i) / sc.numShards) % sc.numShards
 			return false, &item
 		}

@@ -250,7 +250,7 @@ func setupNodeAndRun(hc harmonyConfig) {
 			os.Exit(1)
 		}
 	}
-	// 林游改了
+	// modified by linyou
 	if hc.General.NodeType == "validator" {
 		fmt.Printf("%s mode; node key %s -> shard %d, horizontal shard %d\n",
 			map[bool]string{false: "Legacy", true: "Staking"}[!hc.General.NoStaking],
@@ -531,7 +531,7 @@ func createGlobalConfig(hc harmonyConfig) (*nodeconfig.ConfigType, error) {
 	netType := nodeconfig.NetworkType(hc.Network.NetworkType)
 	nodeconfig.SetNetworkType(netType)                // sets for both global and shard configs
 	nodeConfig.SetShardID(initialAccounts[0].ShardID) // sets shard ID
-	// 林游改了
+	// modified by linyou
 	nodeConfig.SetHorizontalShardID(initialAccounts[0].HorizontalShardID) // sets horizontal shard ID
 	nodeConfig.SetArchival(hc.General.IsBeaconArchival, hc.General.IsArchival)
 	nodeConfig.IsOffline = hc.General.IsOffline
@@ -662,8 +662,9 @@ func setupConsensusAndNode(hc harmonyConfig, nodeConfig *nodeconfig.ConfigType) 
 	}
 	currentNode.NodeConfig.SetShardGroupID(nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(nodeConfig.ShardID)))
 	currentNode.NodeConfig.SetClientGroupID(nodeconfig.NewClientGroupIDByShardID(shard.BeaconChainShardID))
-	// 林游改了
+	// modified by linyou
 	currentNode.NodeConfig.SetHorizontalGroupID(nodeconfig.NewGroupIDByHorizontalShardID(nodeconfig.ShardID(nodeConfig.HorizontalShardID)))
+	currentNode.NodeConfig.SetSubgroupID(nodeconfig.NewSubgroupIDByShardInfo(nodeconfig.ShardID(nodeConfig.ShardID), nodeconfig.ShardID(nodeConfig.HorizontalShardID)))
 	currentNode.NodeConfig.ConsensusPriKey = nodeConfig.ConsensusPriKey
 
 	// This needs to be executed after consensus setup
@@ -685,7 +686,8 @@ func setupConsensusAndNode(hc harmonyConfig, nodeConfig *nodeconfig.ConfigType) 
 	currentConsensus.SetBlockVerifier(currentNode.VerifyNewBlock)
 
 	// 我改了
-	currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessingDIYLattice
+	// 调整
+	currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessingDIYBaseline
 	// currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessing
 
 	// update consensus information based on the blockchain

@@ -42,12 +42,16 @@ func (node *Node) processSkippedMsgTypeByteValue(
 		node.ProcessCrossLinkMessage(content)
 
 	// 我改了，增加对CXContract的处理
+	// 调整
 	case proto_node.CxContract:
-		node.ProcessCXContractMessageDIYLattice(content)
+		// node.ProcessCXContractMessageDIYLattice(content)
+		node.ProcessCXContractMessageDIY(content)
 	case proto_node.CallContract:
-		node.OnCalledCXContractDIYLattice(content)
+		// node.OnCalledCXContractDIYLattice(content)
+		node.OnCalledCXContractDIY(content)
 	case proto_node.CxResult:
-		node.ProcessCXResultMessageDIYLattice(content)
+		// node.ProcessCXResultMessageDIYLattice(content)
+		node.ProcessCXResultMessageDIY(content)
 	default:
 		utils.Logger().Error().
 			Int("message-iota-value", int(cat)).
@@ -104,8 +108,7 @@ func (node *Node) HandleNodeMessage(
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])
 		}
-
-	// 林游改了
+	// modified by linyou
 	// horizontal related message
 	case 5:
 		//do nothing is ok when just broadcast horizontally
@@ -263,7 +266,7 @@ func (node *Node) BroadcastCrossLink() {
 	)
 }
 
-// 林游改了
+// modified by linyou
 // str2bytes can convey string to byte[]
 func str2bytes(s string) []byte {
 	x := (*[2]uintptr)(unsafe.Pointer(&s))
@@ -271,7 +274,7 @@ func str2bytes(s string) []byte {
 	return *(*[]byte)(unsafe.Pointer(&h))
 }
 
-// 林游改了
+// modified by linyou
 // bytes2str can convey byte[] to string
 func bytes2str(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
@@ -363,14 +366,13 @@ func (node *Node) VerifyNewBlock(newBlock *types.Block) error {
 	return nil
 }
 
-// 林游改了
-// PostHorizontalMessage is called by any node in horizontal shard
+// modified by linyou
+// PostAdditionMessage is called by any node in horizontal shard or in subgroup
 // TODO: parameter may be better designed later
-func (node *Node) PostHorizontalMessage(str string) error {
-	groups := []nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()}
+func (node *Node) PostAdditionMessage(str string, groups []nodeconfig.GroupID) error {
 	utils.Logger().Info().
 		Msgf(
-			"broadcasting content %s to horizontal group %s", str, groups[0],
+			"broadcasting content %s to group %s", str, groups[0],
 		)
 	content := str2bytes(str)
 	category := []byte{5}
@@ -395,15 +397,25 @@ func (node *Node) PostConsensusProcessing(newBlock *types.Block) error {
 			node.BroadcastNewBlock(newBlock)
 		}
 		node.BroadcastCXReceipts(newBlock)
-		// 林游改了
+		// modified by linyou
 		// test: let beacon leader send message to his horizontal shard
 		if node.host.GetID().String() == "QmWNYqjG8DRS5pzDuvpt7js6qNtGAprrP8uya6bRc227eL" {
+			// to horizontal shard
+			var horizontalGroups = []nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()}
 			utils.Logger().Info().
 				Msgf(
-					"broadcasting new block again %d, group %s", newBlock.NumberU64(),
-					[]nodeconfig.GroupID{node.NodeConfig.GetHorizontalGroupID()},
+					"try to send message to horizontal shard %s",
+					horizontalGroups,
 				)
-			node.PostHorizontalMessage("hei hei hei i am the boss")
+			node.PostAdditionMessage("hei hei hei i am in horizontal shard", horizontalGroups)
+			// to subgroup
+			var subgroups = []nodeconfig.GroupID{node.NodeConfig.GetSubgroupID()}
+			utils.Logger().Info().
+				Msgf(
+					"try to send message to horizontal subgroup %s",
+					subgroups,
+				)
+			node.PostAdditionMessage("hei hei hei i am in subgroup", subgroups)
 		}
 
 	} else {

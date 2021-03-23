@@ -39,8 +39,8 @@ function setup() {
     touch "${ROOT}/.hmy/blspass.txt"
   fi
 
-  # Kill nodes if any
-  cleanup
+  # # Kill nodes if any
+  # cleanup
 
   # Note that the binarys only works on MacOS & Linux
   build
@@ -82,7 +82,7 @@ function launch_localnet() {
 
     # Read config for i-th node form config file
     IFS=' ' read -r ip port mode bls_key shard <<<"${line}"
-    args=("${base_args[@]}" --ip "${ip}" --port "${port}" --key "/tmp/${ip}-${port}.key" --db_dir "${ROOT}/db-${ip}-${port}" "--broadcast_invalid_tx=false")
+    args=("${base_args[@]}" --http.ip "${ip}" --port "${port}" --key "/tmp/${ip}-${port}.key" --db_dir "${ROOT}/db-${ip}-${port}" "--broadcast_invalid_tx=false")
     if [[ -z "$ip" || -z "$port" ]]; then
       echo "skip empty node"
       continue
@@ -125,6 +125,7 @@ function launch_localnet() {
     esac
 
     # Start the node
+    # trickle -s -d 2560 -u 2560 
     ${DRYRUN} "${ROOT}/bin/harmony" "${args[@]}" "${extra_args[@]}" 2>&1 | tee -a "${LOG_FILE}" &
   done <"${config}"
 }

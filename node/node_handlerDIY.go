@@ -41,7 +41,7 @@ func (node *Node) PostConsensusProcessingDIYBaseline(newBlock *types.Block) erro
 			// if node.NodeConfig.ShardID == shard.BeaconChainShardID {
 			// 	node.BroadcastNewBlock(newBlock)
 			// }
-			node.BroadcastCXReceipts(newBlock)
+			node.BroadcastCXContractOnlyDIY(newBlock)
 			// }
 		}
 	}
@@ -113,7 +113,7 @@ func (node *Node) PostConsensusProcessingDIYLattice(newBlock *types.Block) error
 			// if node.NodeConfig.ShardID == shard.BeaconChainShardID {
 			// 	node.BroadcastNewBlock(newBlock)
 			// }
-			node.BroadcastCXReceiptsDIY(newBlock)
+			node.BroadcastCXContractOnlyDIYLattice(newBlock)
 			// }
 		}
 	}

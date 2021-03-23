@@ -1,6 +1,9 @@
 package node
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/ethereum/go-ethereum/rlp"
 	proto_node "github.com/harmony-one/harmony/api/proto/node"
 	"github.com/harmony-one/harmony/core/types"
@@ -10,7 +13,7 @@ import (
 	"github.com/harmony-one/harmony/shard"
 )
 
-const TotalNumLimit = 10000
+const TotalNumLimit = 100
 
 var BlockNumProcessContract = uint64(0)
 
@@ -24,6 +27,52 @@ var StepCallContract = make([]uint32, TotalNumLimit)
 
 // var BitmapCallContract = make([]int, TotalNumLimit)
 // var BitmapProcessResult = make([]int, TotalNumLimit)
+
+// BroadcastCXContractOnlyDIY broadcasts cross shard contract to correspoding
+// destination shards
+func (node *Node) BroadcastCXContractOnlyDIY(newBlock *types.Block) {
+
+	epoch := newBlock.Header().Epoch()
+	shardingConfig := shard.Schedule.InstanceForEpoch(epoch)
+	shardNum := int(shardingConfig.NumShards())
+	myShardID := node.Consensus.ShardID
+	utils.Logger().Info().Int("shardNum", shardNum).Uint32("myShardID", myShardID).Uint64("blockNum", newBlock.NumberU64()).Msg("[BroadcastCXContractOnlyDIY]")
+
+	for i := 0; i < shardNum; i++ {
+		if i == int(myShardID) {
+			continue
+		}
+		node.BroadcastCXContractWithShardIDDIY(newBlock, uint32(i))
+	}
+}
+
+// BroadcastCXContractWithShardIDDIY broadcasts cross shard contracts to given ToShardID
+func (node *Node) BroadcastCXContractWithShardIDDIY(block *types.Block, toShardID uint32) {
+	myShardID := node.Consensus.ShardID
+	utils.Logger().Debug().
+		Uint32("toShardID", toShardID).
+		Uint32("myShardID", myShardID).
+		Uint64("blockNum", block.NumberU64()).
+		Msg("[BroadcastCXContractWithShardIDDIY]")
+
+	cxReceipts, err := node.Blockchain().ReadCXReceipts(toShardID, block.NumberU64(), block.Hash())
+	if err != nil || len(cxReceipts) == 0 {
+		utils.Logger().Debug().Uint32("ToShardID", toShardID).
+			Int("numCXReceipts", len(cxReceipts)).
+			Msg("[CXMerkleProof] No receipts found for the destination shard")
+		return
+	}
+
+	// 我改了，记录广播时间
+	if node.Consensus.IsLeader() {
+
+		fmt.Println("CXBroadcastTime,", time.Now().UnixNano())
+	}
+
+	// 我改了，增加函数发送跨链智能合约
+	// 调整，Baseline
+	node.BroadcastCXContractDIY(block.NumberU64(), myShardID, toShardID, 2, 500*4096*1, 1)
+}
 
 // BroadcastCXReceiptsDIY broadcasts cross shard receipts to correspoding
 // destination shards
@@ -52,12 +101,7 @@ func (node *Node) BroadcastCXReceiptsDIY(newBlock *types.Block) {
 		if i == int(myShardID) {
 			continue
 		}
-
-		// 只让位于交叉位置subgroup的node发送信息
-		if node.NodeConfig.GetHorizontalShardID() == uint32(i) {
-			node.BroadcastCXReceiptsWithShardIDDIY(newBlock, commitSig, commitBitmap, uint32(i))
-		}
-
+		node.BroadcastCXReceiptsWithShardIDDIY(newBlock, commitSig, commitBitmap, uint32(i))
 	}
 }
 
@@ -104,8 +148,64 @@ func (node *Node) BroadcastCXReceiptsWithShardIDDIY(block *types.Block, commitSi
 		p2p.ConstructMessage(proto_node.ConstructCXReceiptsProof(cxReceiptsProof)),
 	)
 
-	// 增加函数发送跨链智能合约
-	node.BroadcastCXContractDIYLattice(block.NumberU64(), myShardID, toShardID, 3, 300*5, 5)
+	if node.Consensus.IsLeader() {
+
+		fmt.Println("CXBroadcastTime,", time.Now().UnixNano())
+	}
+
+	// // 增加函数发送跨链智能合约
+	// // 调整，Lattice
+	// node.BroadcastCXContractDIYLattice(block.NumberU64(), myShardID, toShardID, 2, 300*5, 5)
+}
+
+// BroadcastCXContractOnlyDIYLattice broadcasts cross shard contract to correspoding
+// destination shards
+func (node *Node) BroadcastCXContractOnlyDIYLattice(newBlock *types.Block) {
+
+	epoch := newBlock.Header().Epoch()
+	shardingConfig := shard.Schedule.InstanceForEpoch(epoch)
+	shardNum := int(shardingConfig.NumShards())
+	myShardID := node.Consensus.ShardID
+	utils.Logger().Info().Int("shardNum", shardNum).Uint32("myShardID", myShardID).Uint64("blockNum", newBlock.NumberU64()).Msg("[BroadcastCXContractOnlyDIYLattice]")
+
+	for i := 0; i < shardNum; i++ {
+		if i == int(myShardID) {
+			continue
+		}
+		// 只让位于交叉位置subgroup的node发送信息
+		if node.NodeConfig.GetHorizontalShardID() == uint32(i) {
+			node.BroadcastCXContractWithShardIDDIYLattice(newBlock, uint32(i))
+
+		}
+	}
+}
+
+// BroadcastCXContractWithShardIDDIYLattice broadcasts cross shard contracts to given ToShardID
+func (node *Node) BroadcastCXContractWithShardIDDIYLattice(block *types.Block, toShardID uint32) {
+	myShardID := node.Consensus.ShardID
+	utils.Logger().Debug().
+		Uint32("ToHorizontalShardID", toShardID).
+		Uint32("myShardID", myShardID).
+		Uint64("blockNum", block.NumberU64()).
+		Msg("[BroadcastCXContractWithShardIDDIYLattice]")
+
+	cxReceipts, err := node.Blockchain().ReadCXReceipts(toShardID, block.NumberU64(), block.Hash())
+	if err != nil || len(cxReceipts) == 0 {
+		utils.Logger().Debug().Uint32("ToShardID", toShardID).
+			Int("numCXReceipts", len(cxReceipts)).
+			Msg("[CXMerkleProof] No receipts found for the destination shard")
+		return
+	}
+
+	// 我改了，记录广播时间
+	if node.Consensus.IsLeader() {
+
+		fmt.Println("CXBroadcastTime,", time.Now().UnixNano())
+	}
+
+	// 我改了，增加函数发送跨链智能合约
+	// 调整，Lattice
+	node.BroadcastCXContractDIYLattice(block.NumberU64(), myShardID, toShardID, 4, 500*4096*1, 1)
 }
 
 // BroadcastCXContractDIY 发送跨分片交易处理请求给对应分片，这里的size是总的size
@@ -125,7 +225,7 @@ func (node *Node) BroadcastCXContractDIY(blocknum uint64, shard0 uint32, shard1 
 	groupID := nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(shard1))
 	utils.Logger().Info().Uint32("ToShardID", shard1).
 		Str("GroupID", string(groupID)).
-		Interface("cxSC", cxContract).
+		// Interface("cxSC", cxContract).
 		Msg("[BroadcastCXContractDIY] Sending CX smart contracts...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
@@ -150,7 +250,7 @@ func (node *Node) BroadcastCXContractDIYLattice(blocknum uint64, shard0 uint32, 
 	groupID := nodeconfig.NewGroupIDByHorizontalShardID(nodeconfig.ShardID(shard1))
 	utils.Logger().Info().Uint32("ToHorizontalShardID", shard1).
 		Str("GroupID", string(groupID)).
-		Interface("cxSC", cxContract).
+		// Interface("cxSC", cxContract).
 		Msg("[BroadcastCXContractDIYLattice] Sending CX smart contracts...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
@@ -170,22 +270,25 @@ func (node *Node) ProcessCXContractMessageDIY(msgPayload []byte) {
 	// 不管收到几个触发执行智能合约的请求，每个node只执行一次
 
 	if BlockNumProcessContract != cxp.BlockNum {
-		utils.Logger().Debug().Interface("cxp", cxp).
+		BlockNumProcessContract = cxp.BlockNum
+		utils.Logger().Debug().
+			// Interface("cxp", cxp).
 			Msg("[ProcessCXContractMessageDIY] Processing cross-shard contract")
 
 		if cxp.Step > uint32(0) {
 			for i := uint64(0); i < cxp.TotalNum; i++ {
-				node.CallAnotherCXContractDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step-1, 200, cxp.TotalNum, i)
+				// 调整，Baseline
+				node.CallAnotherCXContractDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step-1, 500*4096, cxp.TotalNum, i)
 			}
 		}
 
 		if cxp.Step == uint32(0) {
 			for i := uint64(0); i < cxp.TotalNum; i++ {
-				node.ReturnCXContractResultDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step, 300, cxp.TotalNum, i)
+				// 调整，Baseline
+				node.ReturnCXContractResultDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step, 500*4096, cxp.TotalNum, i)
 			}
 		}
 
-		BlockNumProcessContract = cxp.BlockNum
 	}
 
 }
@@ -202,22 +305,25 @@ func (node *Node) ProcessCXContractMessageDIYLattice(msgPayload []byte) {
 	// 不管收到几个触发执行智能合约的请求，每个node只执行一次
 
 	if BlockNumProcessContract != cxp.BlockNum {
-		utils.Logger().Debug().Interface("cxp", cxp).
+		BlockNumProcessContract = cxp.BlockNum
+		utils.Logger().Debug().
+			// Interface("cxp", cxp).
 			Msg("[ProcessCXContractMessageDIYLattice] Processing cross-shard contract")
 
 		if cxp.Step > uint32(0) {
 			for i := uint64(0); i < cxp.TotalNum; i++ {
+				// 调整，Lattice
 				node.CallAnotherCXContractDIYLattice(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step-1, 200, cxp.TotalNum, i)
 			}
 		}
 
 		if cxp.Step == uint32(0) {
 			for i := uint64(0); i < cxp.TotalNum; i++ {
+				// 调整，Lattice
 				node.ReturnCXContractResultDIYLattice(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step, 300, cxp.TotalNum, i)
 			}
 		}
 
-		BlockNumProcessContract = cxp.BlockNum
 	}
 
 }
@@ -246,25 +352,28 @@ func (node *Node) OnCalledCXContractDIY(msgPayload []byte) {
 	}
 
 	if QuorumCallContract[selfnumInt] > int64(2*node.Consensus.Decider.ParticipantsCount()/3) {
-		utils.Logger().Debug().Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
-			Int64("Quorum", QuorumCallContract[selfnumInt]).
-			Interface("cxp", cxp).
-			Msg("[OnCalledCXContractDIY] Enough Quorum")
+		// utils.Logger().Debug().Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
+		// 	Int64("Quorum", QuorumCallContract[selfnumInt]).
+		// 	Interface("cxp", cxp).
+		// 	Msg("[OnCalledCXContractDIY] Enough Quorum")
 		return
 	}
 
 	QuorumCallContract[selfnumInt] = QuorumCallContract[selfnumInt] + int64(1)
 
 	if QuorumCallContract[selfnumInt] > int64(2*node.Consensus.Decider.ParticipantsCount()/3) {
-		utils.Logger().Debug().Interface("cxp", cxp).
+		utils.Logger().Debug().
+			// Interface("cxp", cxp).
 			Msg("[OnCalledCXContractDIY] Processing cross-shard contract")
 
 		if cxp.Step > uint32(0) {
-			node.CallAnotherCXContractDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step-1, 200, cxp.TotalNum, cxp.SelfNum)
+			// 调整，Baseline
+			node.CallAnotherCXContractDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step-1, 500*4096, cxp.TotalNum, cxp.SelfNum)
 			StepCallContract[selfnumInt] = cxp.Step - 1
 		}
 		if cxp.Step == uint32(0) {
-			node.ReturnCXContractResultDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step, 300, cxp.TotalNum, cxp.SelfNum)
+			// 调整，Baseline
+			node.ReturnCXContractResultDIY(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step, 500*4096, cxp.TotalNum, cxp.SelfNum)
 		}
 	}
 
@@ -294,24 +403,27 @@ func (node *Node) OnCalledCXContractDIYLattice(msgPayload []byte) {
 	}
 
 	if QuorumCallContract[selfnumInt] > int64(2*node.Consensus.Decider.ParticipantsCount()/3) {
-		utils.Logger().Debug().Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
-			Int64("Quorum", QuorumCallContract[selfnumInt]).
-			Interface("cxp", cxp).
-			Msg("[OnCalledCXContractDIYLattice] Enough Quorum")
+		// utils.Logger().Debug().Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
+		// 	Int64("Quorum", QuorumCallContract[selfnumInt]).
+		// 	Interface("cxp", cxp).
+		// 	Msg("[OnCalledCXContractDIYLattice] Enough Quorum")
 		return
 	}
 
 	QuorumCallContract[selfnumInt] = QuorumCallContract[selfnumInt] + int64(1)
 
 	if QuorumCallContract[selfnumInt] > int64(2*node.Consensus.Decider.ParticipantsCount()/3) {
-		utils.Logger().Debug().Interface("cxp", cxp).
+		utils.Logger().Debug().
+			// Interface("cxp", cxp).
 			Msg("[OnCalledCXContractDIYLattice] Processing cross-shard contract")
 
 		if cxp.Step > uint32(0) {
+			// 调整，Lattice
 			node.CallAnotherCXContractDIYLattice(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step-1, 200, cxp.TotalNum, cxp.SelfNum)
 			StepCallContract[selfnumInt] = cxp.Step - 1
 		}
 		if cxp.Step == uint32(0) {
+			// 调整，Lattice
 			node.ReturnCXContractResultDIYLattice(cxp.BlockNum, cxp.Shard1, cxp.Shard0, cxp.Step, 300, cxp.TotalNum, cxp.SelfNum)
 		}
 	}
@@ -335,7 +447,7 @@ func (node *Node) CallAnotherCXContractDIY(blocknum uint64, shard0 uint32, shard
 	groupID := nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(shard1))
 	utils.Logger().Info().Uint32("ToShardID", shard1).
 		Str("GroupID", string(groupID)).
-		Interface("cxSC", cxContract).
+		// Interface("cxSC", cxContract).
 		Msg("[CallAnotherCXContract] Calling another CX smart contracts...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
@@ -360,7 +472,7 @@ func (node *Node) CallAnotherCXContractDIYLattice(blocknum uint64, shard0 uint32
 	groupID := nodeconfig.NewGroupIDByHorizontalShardID(nodeconfig.ShardID(shard1))
 	utils.Logger().Info().Uint32("ToHorizontalShardID", shard1).
 		Str("GroupID", string(groupID)).
-		Interface("cxSC", cxContract).
+		// Interface("cxSC", cxContract).
 		Msg("[CallAnotherCXContractDIYLattice] Calling another CX smart contracts...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
@@ -385,7 +497,7 @@ func (node *Node) ReturnCXContractResultDIY(blocknum uint64, shard0 uint32, shar
 	groupID := nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(shard1))
 	utils.Logger().Info().Uint32("ToShardID", shard1).
 		Str("GroupID", string(groupID)).
-		Interface("cxSC", cxContract).
+		// Interface("cxSC", cxContract).
 		Msg("[ReturnCXContractResult] Return CX smart contract results...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
@@ -410,7 +522,7 @@ func (node *Node) ReturnCXContractResultDIYLattice(blocknum uint64, shard0 uint3
 	groupID := nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(shard1))
 	utils.Logger().Info().Uint32("ToShardID", shard1).
 		Str("GroupID", string(groupID)).
-		Interface("cxSC", cxContract).
+		// Interface("cxSC", cxContract).
 		Msg("[ReturnCXContractResultDIYLattice] Return CX smart contract results...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
@@ -442,10 +554,15 @@ func (node *Node) ProcessCXResultMessageDIY(msgPayload []byte) {
 	QuorumProcessResult[selfnumInt] = QuorumProcessResult[selfnumInt] + int64(1)
 
 	if QuorumProcessResult[selfnumInt] > 2*node.Consensus.Decider.ParticipantsCount()/3 {
-		utils.Logger().Debug().Interface("cxp", cxp).
+		utils.Logger().Debug().
+			// Interface("cxp", cxp).
 			Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
 			Int64("Quorum", QuorumProcessResult[selfnumInt]).
 			Msg("[ProcessCXResultMessage] Process cross-shard contract DONE")
+
+		if node.Consensus.IsLeader() {
+			fmt.Println("CXFinishTime,", time.Now().UnixNano())
+		}
 	}
 
 }
@@ -474,10 +591,15 @@ func (node *Node) ProcessCXResultMessageDIYLattice(msgPayload []byte) {
 	QuorumProcessResult[selfnumInt] = QuorumProcessResult[selfnumInt] + int64(1)
 
 	if QuorumProcessResult[selfnumInt] > 2*node.Consensus.Decider.ParticipantsCount()/3 {
-		utils.Logger().Debug().Interface("cxp", cxp).
+		utils.Logger().Debug().
+			// Interface("cxp", cxp).
 			Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
 			Int64("Quorum", QuorumProcessResult[selfnumInt]).
 			Msg("[ProcessCXResultMessageDIYLattice] Process cross-shard contract DONE")
+
+		if node.Consensus.IsLeader() {
+			fmt.Println("CXFinishTime,", time.Now().UnixNano())
+		}
 	}
 
 }

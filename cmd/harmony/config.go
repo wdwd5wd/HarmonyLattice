@@ -52,7 +52,7 @@ type p2pConfig struct {
 	DHTDataStore *string `toml:",omitempty"`
 }
 
-// 林游改了
+// modified by linyou
 type generalConfig struct {
 	NodeType          string
 	NoStaking         bool

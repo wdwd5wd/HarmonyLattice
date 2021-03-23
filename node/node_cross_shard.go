@@ -1,6 +1,9 @@
 package node
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	proto_node "github.com/harmony-one/harmony/api/proto/node"
@@ -87,8 +90,15 @@ func (node *Node) BroadcastCXReceiptsWithShardID(block *types.Block, commitSig [
 		p2p.ConstructMessage(proto_node.ConstructCXReceiptsProof(cxReceiptsProof)),
 	)
 
+	// 我改了，记录广播时间
+	if node.Consensus.IsLeader() {
+
+		fmt.Println("CXBroadcastTime,", time.Now().UnixNano())
+	}
+
 	// 我改了，增加函数发送跨链智能合约
-	node.BroadcastCXContractDIY(block.NumberU64(), myShardID, toShardID, 3, 300*5, 5)
+	// 调整，Baseline
+	node.BroadcastCXContractDIY(block.NumberU64(), myShardID, toShardID, 2, 500*4096*1, 1)
 }
 
 // BroadcastMissingCXReceipts broadcasts missing cross shard receipts per request

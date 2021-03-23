@@ -67,7 +67,9 @@ const (
 	// MaxMessageHandlers ..
 	MaxMessageHandlers = SetAsideForConsensus + SetAsideOtherwise
 	// MaxMessageSize is 2Mb
-	MaxMessageSize = 1 << 21
+	// 我改了
+	// MaxMessageSize = 1 << 21
+	MaxMessageSize = 1 << 22
 )
 
 // HostConfig is the config structure to create a new host

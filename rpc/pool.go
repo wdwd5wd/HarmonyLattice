@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -105,6 +107,8 @@ func (s *PublicPoolService) SendRawTransaction(
 			Interface("tx", tx).
 			Msg("Submitted transaction")
 	}
+
+	fmt.Println("TxReceivedTime,", time.Now().UnixNano())
 
 	// Response output is the same for all versions
 	return txHash, nil
