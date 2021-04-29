@@ -61,9 +61,13 @@ type Peer struct {
 
 const (
 	// SetAsideForConsensus set the number of active validation goroutines for the consensus topic
-	SetAsideForConsensus = 1 << 13
+	// 我改了
+	// SetAsideForConsensus = 1 << 13
+	SetAsideForConsensus = 1 << 22
 	// SetAsideOtherwise set the number of active validation goroutines for other topic
-	SetAsideOtherwise = 1 << 11
+	// 我改了
+	// SetAsideOtherwise = 1 << 11
+	SetAsideOtherwise = 1 << 22
 	// MaxMessageHandlers ..
 	MaxMessageHandlers = SetAsideForConsensus + SetAsideOtherwise
 	// MaxMessageSize is 2Mb
@@ -113,11 +117,13 @@ func NewHost(cfg HostConfig) (Host, error) {
 
 	options := []libp2p_pubsub.Option{
 		// WithValidateQueueSize sets the buffer of validate queue. Defaults to 32. When queue is full, validation is throttled and new messages are dropped.
-		libp2p_pubsub.WithValidateQueueSize(512),
+		// 我改了
+		// libp2p_pubsub.WithValidateQueueSize(512),
+		libp2p_pubsub.WithValidateQueueSize(512000),
 		// WithPeerOutboundQueueSize is an option to set the buffer size for outbound messages to a peer. We start dropping messages to a peer if the outbound queue if full.
-		libp2p_pubsub.WithPeerOutboundQueueSize(64),
+		libp2p_pubsub.WithPeerOutboundQueueSize(64000),
 		// WithValidateWorkers sets the number of synchronous validation worker goroutines. Defaults to NumCPU.
-		libp2p_pubsub.WithValidateWorkers(runtime.NumCPU() * 2),
+		libp2p_pubsub.WithValidateWorkers(runtime.NumCPU() * 1000),
 		// WithValidateThrottle sets the upper bound on the number of active validation goroutines across all topics. The default is 8192.
 		libp2p_pubsub.WithValidateThrottle(MaxMessageHandlers),
 		libp2p_pubsub.WithMaxMessageSize(MaxMessageSize),
@@ -273,6 +279,9 @@ func (host *HostV2) SendMessageToGroups(groups []nodeconfig.GroupID, msg []byte)
 			continue
 		}
 	}
+
+	// 我改了，加注释
+	utils.Logger().Debug().Msg("Message sent")
 
 	return err
 }

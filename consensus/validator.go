@@ -173,6 +173,7 @@ func (consensus *Consensus) onPrepared(recvMsg *FBFTMessage) {
 		consensus.getLogger().Debug().Msg("[onPrepared] consensus received message before init. Ignoring")
 		return
 	}
+	// 这个花时间
 	if err := consensus.BlockVerifier(&blockObj); err != nil {
 		consensus.getLogger().Error().Err(err).Msg("[OnPrepared] Block verification failed")
 		return

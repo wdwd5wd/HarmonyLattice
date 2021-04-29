@@ -52,11 +52,13 @@ const (
 	// NumTryBroadCast is the number of times trying to broadcast
 	NumTryBroadCast = 3
 	// MsgChanBuffer is the buffer of consensus message handlers.
-	MsgChanBuffer = 1024
+	// 我改了，增大buffer
+	// MsgChanBuffer = 1024
+	MsgChanBuffer = 102400
 )
 
 const (
-	maxBroadcastNodes       = 10              // broadcast at most maxBroadcastNodes peers that need in sync
+	maxBroadcastNodes       = 100             // broadcast at most maxBroadcastNodes peers that need in sync
 	broadcastTimeout  int64 = 60 * 1000000000 // 1 mins
 	//SyncIDLength is the length of bytes for syncID
 	SyncIDLength = 20
@@ -157,7 +159,8 @@ func (node *Node) tryBroadcast(tx *types.Transaction) {
 	msg := proto_node.ConstructTransactionListMessageAccount(types.Transactions{tx})
 
 	shardGroupID := nodeconfig.NewGroupIDByShardID(nodeconfig.ShardID(tx.ShardID()))
-	utils.Logger().Info().Str("shardGroupID", string(shardGroupID)).Msg("tryBroadcast")
+	// 我改了
+	// utils.Logger().Info().Str("shardGroupID", string(shardGroupID)).Msg("tryBroadcast")
 
 	for attempt := 0; attempt < NumTryBroadCast; attempt++ {
 		if err := node.host.SendMessageToGroups([]nodeconfig.GroupID{shardGroupID},
@@ -205,13 +208,14 @@ func (node *Node) addPendingTransactions(newTxs types.Transactions) []error {
 	}
 	errs = append(errs, node.TxPool.AddRemotes(poolTxs)...)
 
-	pendingCount, queueCount := node.TxPool.Stats()
-	utils.Logger().Info().
-		Interface("err", errs).
-		Int("length of newTxs", len(newTxs)).
-		Int("totalPending", pendingCount).
-		Int("totalQueued", queueCount).
-		Msg("[addPendingTransactions] Adding more transactions")
+	// 我改了
+	// pendingCount, queueCount := node.TxPool.Stats()
+	// utils.Logger().Info().
+	// 	Interface("err", errs).
+	// 	Int("length of newTxs", len(newTxs)).
+	// 	Int("totalPending", pendingCount).
+	// 	Int("totalQueued", queueCount).
+	// 	Msg("[addPendingTransactions] Adding more transactions")
 	return errs
 }
 
@@ -282,7 +286,8 @@ func (node *Node) AddPendingTransaction(newTx *types.Transaction) error {
 			}
 		}
 		if err == nil || node.BroadcastInvalidTx {
-			utils.Logger().Info().Str("Hash", newTx.Hash().Hex()).Str("HashByType", newTx.HashByType().Hex()).Msg("Broadcasting Tx")
+			// 我改了
+			// utils.Logger().Info().Str("Hash", newTx.Hash().Hex()).Str("HashByType", newTx.HashByType().Hex()).Msg("Broadcasting Tx")
 			node.tryBroadcast(newTx)
 		}
 		return err
@@ -423,6 +428,8 @@ func (node *Node) validateNodeMessage(ctx context.Context, payload []byte) (
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "cxcontract"}).Inc()
 		case proto_node.CallContract:
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "callcontract"}).Inc()
+		case proto_node.CallContractSub:
+			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "callcontractbysub"}).Inc()
 		case proto_node.CxResult:
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "cxresult"}).Inc()
 
@@ -699,7 +706,7 @@ func (node *Node) StartPubSub() error {
 				openBox := hmyMsg[p2pMsgPrefixSize:]
 
 				// 我改了，增加延迟
-				// time.Sleep(100 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 
 				// validate message category
 				switch proto.MessageCategory(openBox[proto.MessageCategoryBytes-1]) {
@@ -828,7 +835,9 @@ func (node *Node) StartPubSub() error {
 					return
 				case m := <-msgChanConsensus:
 					// should not take more than 10 seconds to process one message
-					ctx, cancel := context.WithTimeout(node.psCtx, 10*time.Second)
+					// 我改了，增大timeout
+					// ctx, cancel := context.WithTimeout(node.psCtx, 10*time.Second)
+					ctx, cancel := context.WithTimeout(node.psCtx, 60*time.Second)
 					msg := m
 					go func() {
 						defer cancel()
@@ -874,7 +883,9 @@ func (node *Node) StartPubSub() error {
 			for {
 				select {
 				case m := <-msgChanNode:
-					ctx, cancel := context.WithTimeout(node.psCtx, 10*time.Second)
+					// 我改了，增大timeout
+					// ctx, cancel := context.WithTimeout(node.psCtx, 10*time.Second)
+					ctx, cancel := context.WithTimeout(node.psCtx, 60*time.Second)
 					msg := m
 					go func() {
 						defer cancel()

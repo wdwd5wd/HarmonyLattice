@@ -113,7 +113,7 @@ func (node *Node) PostConsensusProcessingDIYLattice(newBlock *types.Block) error
 			// if node.NodeConfig.ShardID == shard.BeaconChainShardID {
 			// 	node.BroadcastNewBlock(newBlock)
 			// }
-			node.BroadcastCXContractOnlyDIYLattice(newBlock)
+			// node.BroadcastCXContractOnlyDIYLattice(newBlock)
 			// }
 		}
 	}

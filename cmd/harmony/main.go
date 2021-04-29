@@ -687,7 +687,8 @@ func setupConsensusAndNode(hc harmonyConfig, nodeConfig *nodeconfig.ConfigType) 
 
 	// 我改了
 	// 调整
-	currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessingDIYBaseline
+	currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessingDIYLattice
+	// currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessingDIYBaseline
 	// currentConsensus.PostConsensusJob = currentNode.PostConsensusProcessing
 
 	// update consensus information based on the blockchain

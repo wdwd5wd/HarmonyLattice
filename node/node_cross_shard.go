@@ -98,7 +98,7 @@ func (node *Node) BroadcastCXReceiptsWithShardID(block *types.Block, commitSig [
 
 	// 我改了，增加函数发送跨链智能合约
 	// 调整，Baseline
-	node.BroadcastCXContractDIY(block.NumberU64(), myShardID, toShardID, 2, 500*4096*1, 1)
+	node.BroadcastCXContractDIY(block.NumberU64(), myShardID, toShardID, 3, 100*4096, 3)
 }
 
 // BroadcastMissingCXReceipts broadcasts missing cross shard receipts per request

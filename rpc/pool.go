@@ -2,8 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -75,11 +73,14 @@ func (s *PublicPoolService) SendRawTransaction(
 		return common.Hash{}, err
 	}
 
-	// Submit transaction
-	if err := s.hmy.SendTx(ctx, tx); err != nil {
-		utils.Logger().Warn().Err(err).Msg("Could not submit transaction")
-		return txHash, err
-	}
+	// 我改了，并行处理交易
+	go func() {
+		// Submit transaction
+		if err := s.hmy.SendTx(ctx, tx); err != nil {
+			utils.Logger().Warn().Err(err).Msg("Could not submit transaction")
+			// return txHash, err
+		}
+	}()
 
 	// Log submission
 	if tx.To() == nil {
@@ -107,8 +108,6 @@ func (s *PublicPoolService) SendRawTransaction(
 			Interface("tx", tx).
 			Msg("Submitted transaction")
 	}
-
-	fmt.Println("TxReceivedTime,", time.Now().UnixNano())
 
 	// Response output is the same for all versions
 	return txHash, nil

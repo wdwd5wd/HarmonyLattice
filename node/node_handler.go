@@ -44,14 +44,18 @@ func (node *Node) processSkippedMsgTypeByteValue(
 	// 我改了，增加对CXContract的处理
 	// 调整
 	case proto_node.CxContract:
-		// node.ProcessCXContractMessageDIYLattice(content)
-		node.ProcessCXContractMessageDIY(content)
+		go node.ProcessCXContractDIYLatticeAgg(content)
+		// go node.ProcessCXContractMessageDIYLattice(content)
+		// go node.ProcessCXContractMessageDIY(content)
 	case proto_node.CallContract:
-		// node.OnCalledCXContractDIYLattice(content)
-		node.OnCalledCXContractDIY(content)
+		go node.OnCalledCXContractDIYLatticeAgg(content)
+		// go node.OnCalledCXContractDIYLattice(content)
+		// go node.OnCalledCXContractDIY(content)
+	case proto_node.CallContractSub:
+		go node.OnSubGroupContractDIYLatticeAgg(content)
 	case proto_node.CxResult:
-		// node.ProcessCXResultMessageDIYLattice(content)
-		node.ProcessCXResultMessageDIY(content)
+		go node.ProcessCXResultMessageDIYLattice(content)
+		// go node.ProcessCXResultMessageDIY(content)
 	default:
 		utils.Logger().Error().
 			Int("message-iota-value", int(cat)).
@@ -104,6 +108,7 @@ func (node *Node) HandleNodeMessage(
 			// 我改了，增加对cross shard的处理
 			proto_node.CxContract,
 			proto_node.CallContract,
+			proto_node.CallContractSub,
 			proto_node.CxResult:
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])

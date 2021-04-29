@@ -310,7 +310,9 @@ func (consensus *Consensus) onCommit(recvMsg *FBFTMessage) {
 			}
 			consensus.getLogger().Info().Str("waitTime", waitTime.String()).
 				Msg("[OnCommit] Starting Grace Period")
-			time.Sleep(waitTime)
+
+			// 我改了，取消等待
+			// time.Sleep(waitTime)
 			logger.Info().Msg("[OnCommit] Commit Grace Period Ended")
 
 			consensus.mutex.Lock()

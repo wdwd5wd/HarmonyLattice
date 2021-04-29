@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
 	"sync/atomic"
 	"time"
 
@@ -229,6 +230,12 @@ func (consensus *Consensus) finalCommit() {
 		Int("numStakingTxns", len(block.StakingTransactions())).
 		Msg("HOORAY!!!!!!! CONSENSUS REACHED!!!!!!!")
 
+	// 我改了
+	if consensus.IsLeader() {
+
+		fmt.Println("ConsensusEndTime,", time.Now().UnixNano(), ", Shard,", consensus.ShardID)
+	}
+
 	consensus.UpdateLeaderMetrics(float64(numCommits), float64(block.NumberU64()))
 
 	// If still the leader, send commit sig/bitmap to finish the new block proposal,
@@ -326,7 +333,8 @@ func (consensus *Consensus) Start(
 					}
 					if k != timeoutViewChange {
 						consensus.getLogger().Warn().Msg("[ConsensusMainLoop] Ops Consensus Timeout!!!")
-						consensus.startViewChange()
+						// 我改了，强迫不进入viewchange
+						// consensus.startViewChange()
 						break
 					} else {
 						consensus.getLogger().Warn().Msg("[ConsensusMainLoop] Ops View Change Timeout!!!")
@@ -459,6 +467,17 @@ func (consensus *Consensus) Start(
 					Time("startTime", startTime).
 					Int64("publicKeys", consensus.Decider.ParticipantsCount()).
 					Msg("[ConsensusMainLoop] STARTING CONSENSUS")
+
+				// 我改了
+				if len(newBlock.Transactions()) != 0 {
+					fmt.Println("TxReceivedTime,", time.Now().UnixNano())
+				}
+
+				if consensus.IsLeader() {
+
+					fmt.Println("ConsensusStartTime,", time.Now().UnixNano(), ", Shard,", consensus.ShardID)
+				}
+
 				consensus.announce(newBlock)
 			case <-stopChan:
 				consensus.getLogger().Info().Msg("[ConsensusMainLoop] stopChan")
