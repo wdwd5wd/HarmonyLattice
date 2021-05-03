@@ -21,6 +21,19 @@ func ConstructCXContractDIY(cxContract *types.CXContract) []byte {
 	return byteBuffer.Bytes()
 }
 
+// ConstructCXContractPyramid constructs cross shard contracts
+func ConstructCXContractPyramid(cxContract *types.CXContract) []byte {
+	byteBuffer := bytes.NewBuffer(pyramidH)
+	by, err := rlp.EncodeToBytes(cxContract)
+	if err != nil {
+		const msg = "[ConstructCXContract] Encode ConstructCXContract Error"
+		utils.Logger().Error().Err(err).Msg(msg)
+		return []byte{}
+	}
+	byteBuffer.Write(by)
+	return byteBuffer.Bytes()
+}
+
 // CallCXContract call another smart contract
 func CallCXContractDIY(cxContract *types.CXContract) []byte {
 	byteBuffer := bytes.NewBuffer(callcontractH)
@@ -37,6 +50,19 @@ func CallCXContractDIY(cxContract *types.CXContract) []byte {
 // CallCXContract call another smart contract
 func CallCXContractBySubGroupDIY(cxContract *types.CXContract) []byte {
 	byteBuffer := bytes.NewBuffer(callcontractSubH)
+	by, err := rlp.EncodeToBytes(cxContract)
+	if err != nil {
+		const msg = "[CallCXContract] Encode ConstructCXResult Error"
+		utils.Logger().Error().Err(err).Msg(msg)
+		return []byte{}
+	}
+	byteBuffer.Write(by)
+	return byteBuffer.Bytes()
+}
+
+// CallCXContract call another smart contract
+func CallConsensusDIYY(cxContract *types.CXContract) []byte {
+	byteBuffer := bytes.NewBuffer(callconsensusH)
 	by, err := rlp.EncodeToBytes(cxContract)
 	if err != nil {
 		const msg = "[CallCXContract] Encode ConstructCXResult Error"

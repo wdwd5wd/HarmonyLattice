@@ -43,6 +43,8 @@ func (node *Node) processSkippedMsgTypeByteValue(
 
 	// 我改了，增加对CXContract的处理
 	// 调整
+	case proto_node.Pyramid:
+		go node.ProcessCXContractDIYPyramid(content)
 	case proto_node.CxContract:
 		go node.ProcessCXContractDIYLatticeAgg(content)
 		// go node.ProcessCXContractMessageDIYLattice(content)
@@ -51,6 +53,8 @@ func (node *Node) processSkippedMsgTypeByteValue(
 		go node.OnCalledCXContractDIYLatticeAgg(content)
 		// go node.OnCalledCXContractDIYLattice(content)
 		// go node.OnCalledCXContractDIY(content)
+	case proto_node.CallConsensus:
+		go node.OnConsensusDIYY(content)
 	case proto_node.CallContractSub:
 		go node.OnSubGroupContractDIYLatticeAgg(content)
 	case proto_node.CxResult:
@@ -107,8 +111,10 @@ func (node *Node) HandleNodeMessage(
 			proto_node.CrossLink,
 			// 我改了，增加对cross shard的处理
 			proto_node.CxContract,
+			proto_node.Pyramid,
 			proto_node.CallContract,
 			proto_node.CallContractSub,
+			proto_node.CallConsensus,
 			proto_node.CxResult:
 			// skip first byte which is blockMsgType
 			node.processSkippedMsgTypeByteValue(blockMsgType, msgPayload[1:])

@@ -1,3 +1,5 @@
+// 各种测试算法在这个包
+
 package node
 
 import (
@@ -170,8 +172,14 @@ func (node *Node) BroadcastCXReceiptsWithShardIDDIY(block *types.Block, commitSi
 	}
 
 	// 增加函数发送跨链智能合约
-	// 调整，Lattice，both basic and agg
-	node.BroadcastCXContractDIYLattice(block.NumberU64(), myShardID, toShardID, 2, 0, 2)
+	// // 调整，Pyramid
+	// node.BroadcastCXContractDIYPyramid(block.NumberU64(), myShardID, toShardID, 2, 1000*4096, 3)
+
+	// 调整，Lattice, final version?, 包括我们的（step=2），CxFunc(step增多)，SingleShard（跟我们差不多），yanking（跟CxFunc差不多，size变大）
+	totalNum := 3
+	for i := 0; i < totalNum; i++ {
+		node.BroadcastCXContractDIYY(block.NumberU64(), myShardID, toShardID, 2, 1000*4096/totalNum, uint64(totalNum), uint64(i))
+	}
 }
 
 // BroadcastCXContractOnlyDIYLattice broadcasts cross shard contract to correspoding
@@ -222,6 +230,7 @@ func (node *Node) BroadcastCXContractWithShardIDDIYLattice(block *types.Block, t
 	// 我改了，增加函数发送跨链智能合约
 	// 调整，Lattice，both basic and agg
 	node.BroadcastCXContractDIYLattice(block.NumberU64(), myShardID, toShardID, 5, 512*4096, 5)
+
 }
 
 // BroadcastCXContractDIY 发送跨分片交易处理请求给对应分片，这里的size是总的size
@@ -807,9 +816,12 @@ func (node *Node) OnCalledCXContractDIYLatticeAgg(msgPayload []byte) {
 			// Interface("cxp", cxp).
 			Msg("[OnCalledCXContractDIYLatticeAgg] Processing cross-shard contract")
 
-		// 调整，Lattice, agg
-		// StepCallContractAgg[selfnumInt] = cxp.Step - 1
-		node.SendtoSubGroupDIYLatticeAgg(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1, 0)
+		// // 调整，Lattice, agg
+		// // StepCallContractAgg[selfnumInt] = cxp.Step - 1
+		// node.SendtoSubGroupDIYLatticeAgg(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1, 0)
+
+		// 调整，Lattice, final version?
+		node.SendtoConsensusDIYY(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1)
 
 		return
 	}

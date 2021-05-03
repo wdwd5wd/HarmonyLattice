@@ -49,7 +49,9 @@ const (
 	// 我改了
 	CallContract    // call another contract
 	CallContractSub // call contract by subgroup
+	CallConsensus   // call consensus
 	CxContract      // cross-shard contract
+	Pyramid         // used for Pyramid
 	CxResult        // cross-shard result
 )
 
@@ -67,7 +69,9 @@ var (
 	// 我改了
 	callcontractB    = byte(CallContract)
 	callcontractSubB = byte(CallContractSub)
+	callconsensusB   = byte(CallConsensus)
 	cxcontractB      = byte(CxContract)
+	pyramidB         = byte(Pyramid)
 	cxresultB        = byte(CxResult)
 	// H suffix means header
 	slashH           = []byte{nodeB, blockB, slashB}
@@ -79,7 +83,9 @@ var (
 	// 我改了
 	callcontractH    = []byte{nodeB, blockB, callcontractB}
 	callcontractSubH = []byte{nodeB, blockB, callcontractSubB}
+	callconsensusH   = []byte{nodeB, blockB, callconsensusB}
 	cxcontractH      = []byte{nodeB, blockB, cxcontractB}
+	pyramidH         = []byte{nodeB, blockB, pyramidB}
 	cxresultH        = []byte{nodeB, blockB, cxresultB}
 )
 

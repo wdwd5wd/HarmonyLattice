@@ -426,8 +426,12 @@ func (node *Node) validateNodeMessage(ctx context.Context, payload []byte) (
 		// 我改了，增加对contract相关的验证
 		case proto_node.CxContract:
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "cxcontract"}).Inc()
+		case proto_node.Pyramid:
+			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "pyramid"}).Inc()
 		case proto_node.CallContract:
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "callcontract"}).Inc()
+		case proto_node.CallConsensus:
+			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "callconsensus"}).Inc()
 		case proto_node.CallContractSub:
 			nodeNodeMessageCounterVec.With(prometheus.Labels{"type": "callcontractbysub"}).Inc()
 		case proto_node.CxResult:
