@@ -46,7 +46,7 @@ func (node *Node) processSkippedMsgTypeByteValue(
 	case proto_node.Pyramid:
 		go node.ProcessCXContractDIYPyramid(content)
 	case proto_node.CxContract:
-		go node.ProcessCXContractDIYLatticeAgg(content)
+		go node.ProcessCXContractDIYY(content)
 		// go node.ProcessCXContractMessageDIYLattice(content)
 		// go node.ProcessCXContractMessageDIY(content)
 	case proto_node.CallContract:

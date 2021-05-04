@@ -144,7 +144,7 @@ func (node *Node) OnConsensusDIYY(msgPayload []byte) {
 			// Interface("cxp", cxp).
 			Msg("[OnConsensusDIYY] Processing cross-shard contract")
 
-		// 调整，Lattice, agg
+		// 调整，Lattice, final version?
 		node.SendtoSubGroupDIYLatticeAgg(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1, 0)
 
 	}

@@ -172,14 +172,16 @@ func (node *Node) BroadcastCXReceiptsWithShardIDDIY(block *types.Block, commitSi
 	}
 
 	// 增加函数发送跨链智能合约
-	// // 调整，Pyramid
-	// node.BroadcastCXContractDIYPyramid(block.NumberU64(), myShardID, toShardID, 2, 1000*4096, 3)
 
-	// 调整，Lattice, final version?, 包括我们的（step=2），CxFunc(step增多)，SingleShard（跟我们差不多），yanking（跟CxFunc差不多，size变大）
-	totalNum := 3
-	for i := 0; i < totalNum; i++ {
-		node.BroadcastCXContractDIYY(block.NumberU64(), myShardID, toShardID, 2, 1000*4096/totalNum, uint64(totalNum), uint64(i))
-	}
+	// 调整，Pyramid
+	node.BroadcastCXContractDIYPyramid(block.NumberU64(), myShardID, toShardID, 2, 1000*4096, 3)
+
+	// // 调整，Lattice, final version?, 包括我们的（step=2），CxFunc(step增多)，SingleShard（跟我们差不多），yanking（跟CxFunc差不多，size变大）
+	// totalNum := 3
+	// for i := 0; i < totalNum; i++ {
+	// 	node.BroadcastCXContractDIYY(block.NumberU64(), myShardID, toShardID, 3, 1000*4096/totalNum, uint64(totalNum), uint64(i))
+	// }
+
 }
 
 // BroadcastCXContractOnlyDIYLattice broadcasts cross shard contract to correspoding
@@ -534,7 +536,7 @@ func (node *Node) OnSubGroupContractDIYLatticeAgg(msgPayload []byte) {
 	QuorumCallContract[selfnumInt] = QuorumCallContract[selfnumInt] + int64(1)
 
 	if QuorumCallContract[selfnumInt] > int64(2*node.Consensus.Decider.ParticipantsCount()/3) {
-		StepCallContract[selfnumInt] = cxp.Step - 1
+		// StepCallContract[selfnumInt] = cxp.Step - 1
 
 		CountCallContract = CountCallContract + uint64(1)
 		if CountCallContract == cxp.TotalNum {
@@ -546,11 +548,11 @@ func (node *Node) OnSubGroupContractDIYLatticeAgg(msgPayload []byte) {
 			// 只让leader发
 			if node.Consensus.IsLeader() {
 				if cxp.Step > uint32(1) {
-					// 调整，Lattice, agg
+					// 调整，Lattice, final version?
 					node.CallAnotherCXContractDIYLattice(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard1, cxp.Shard0, cxp.Step-1, 1000*4096, 1, 0)
 				}
 				if cxp.Step == uint32(1) {
-					// 调整，Lattice, agg
+					// 调整，Lattice, final version?
 					node.ReturnCXContractResultDIYLattice(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard1, cxp.Shard0, cxp.Step, 1000*4096, 1, 0)
 				}
 			}
@@ -833,9 +835,12 @@ func (node *Node) OnCalledCXContractDIYLatticeAgg(msgPayload []byte) {
 			// Interface("cxp", cxp).
 			Msg("[OnCalledCXContractDIYLatticeAgg] Processing cross-shard contract")
 
-		// 调整，Lattice, agg
-		// StepCallContractAgg[selfnumInt] = cxp.Step - 1
-		node.SendtoSubGroupDIYLatticeAgg(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1, 0)
+		// // 调整，Lattice, agg
+		// // StepCallContractAgg[selfnumInt] = cxp.Step - 1
+		// node.SendtoSubGroupDIYLatticeAgg(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1, 0)
+
+		// 调整，Lattice, final version?
+		node.SendtoConsensusDIYY(cxp.BlockNum, cxp.Source, cxp.Destination, cxp.Shard0, cxp.Shard1, cxp.Step, 300, 1)
 
 		return
 	}
@@ -1051,7 +1056,7 @@ func (node *Node) ProcessCXResultMessageDIYLattice(msgPayload []byte) {
 		utils.Logger().Debug().
 			// Interface("cxp", cxp).
 			Int64("ParticipantsCount", node.Consensus.Decider.ParticipantsCount()).
-			Int64("Quorum", QuorumProcessResult[selfnumInt]).
+			// Int64("Quorum", QuorumProcessResult[selfnumInt]).
 			Msg("[ProcessCXResultMessageDIYLattice] Process cross-shard contract DONE")
 
 		if node.Consensus.IsLeader() {

@@ -30,7 +30,7 @@ func (node *Node) BroadcastCXContractDIYPyramid(blocknum uint64, shard0 uint32, 
 	utils.Logger().Info().Uint32("ToHorizontalShardID", shard1).
 		Str("GroupID", string(groupID)).
 		// Interface("cxSC", cxContract).
-		Msg("[BroadcastCXContractDIYLattice] Sending CX smart contracts...")
+		Msg("[BroadcastCXContractDIYPyramid] Sending CX smart contracts...")
 	// TODO ek – limit concurrency
 	go node.host.SendMessageToGroups([]nodeconfig.GroupID{groupID},
 		p2p.ConstructMessage(proto_node.ConstructCXContractPyramid(cxContract)),
@@ -42,7 +42,7 @@ func (node *Node) ProcessCXContractDIYPyramid(msgPayload []byte) {
 	cxp := types.CXContract{}
 	if err := rlp.DecodeBytes(msgPayload, &cxp); err != nil {
 		utils.Logger().Error().Err(err).
-			Msg("[ProcessCXContractDIYLatticeAgg] Unable to Decode message Payload")
+			Msg("[ProcessCXContractDIYPyramid] Unable to Decode message Payload")
 		return
 	}
 
@@ -51,13 +51,13 @@ func (node *Node) ProcessCXContractDIYPyramid(msgPayload []byte) {
 		BlockNumProcessContract = cxp.BlockNum
 		utils.Logger().Debug().
 			// Interface("cxp", cxp).
-			Msg("[ProcessCXContractDIYLatticeAgg] Processing cross-shard contract")
+			Msg("[ProcessCXContractDIYPyramid] Processing cross-shard contract")
 
 		// 先全部发送给subgroup
 		// 舍弃了subgroup的design，改为在全组内达成共识
 		for i := uint64(0); i < cxp.TotalNum; i++ {
-			// 调整，Lattice, agg
-			node.BroadcastCXContractDIYY(cxp.BlockNum, cxp.Shard0, cxp.Shard1, 2, 0, cxp.TotalNum, i)
+			// 调整，Pyramid
+			node.BroadcastCXContractDIYY(cxp.BlockNum, cxp.Shard0, cxp.Shard1, 2, 512*4096, cxp.TotalNum, i)
 		}
 
 	}
